@@ -1,9 +1,17 @@
+# scanner.py
+
 import socket
 import ipaddress
 import concurrent.futures
+import json
+import threading
+import time
+import comms
 
 PORT_TO_SCAN = 6274
 TIMEOUT = 1  # seconds
+OUTPUT_FILE = "devices.json"
+SCAN_INTERVAL = 30  # seconds
 
 def get_local_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -21,11 +29,9 @@ def scan_port(ip):
     except (socket.timeout, ConnectionRefusedError, OSError):
         return None
 
-
 def scan_network():
     local_ip = get_local_ip()
     subnet = ipaddress.ip_network(local_ip + '/24', strict=False)
-    print(f"Scanning subnet: {subnet} for port {PORT_TO_SCAN}...\n")
 
     found = []
 
@@ -35,15 +41,23 @@ def scan_network():
             ip = futures[future]
             result = future.result()
             if result:
-                found.append(str(ip))
+                device = comms.connect(str(ip))
+                found.append({
+                    "ip": str(ip),
+                    "device info": comms.receive(device)
+                })
 
-    '''
-    if found:
-        print("Devices with port 6274 open:")
-        for ip in found:
-            print(f"{ip}")
-    else:
-        print("No devices found with port 6274 open.")
-    '''
+    with open(OUTPUT_FILE, "w") as f:
+        json.dump(found, f, indent=4)
+
     return found
 
+def start_periodic_scan():
+    scan_thread = threading.Thread(target=_periodic_scan, daemon=True)
+    scan_thread.start()
+    return scan_thread
+
+def _periodic_scan():
+    while True:
+        scan_network()
+        time.sleep(SCAN_INTERVAL)

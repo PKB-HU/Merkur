@@ -1,17 +1,22 @@
 import socket
 
-host = "192.168.1.119"
-port = 6274
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.connect((host, port))
+def connect(ip):
+    host = ip #"192.168.1.119"
+    port = 6274
 
-while True:
-    msg = input("Send to ESP32: ")
-    if msg.lower() == "exit":
-        break
-    s.send((msg + "\n").encode())
-    data = s.recv(1024)
-    print("Received:", data.decode())
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((host, port))
+    return s
 
-s.close()
+def disconnect(s):
+    s.close()
+
+def send_message(message, ip):
+    s = connect(ip)
+    s.send((message + "\n").encode())
+
+def receive(s):
+    return s.recv(1024).decode()
+
+

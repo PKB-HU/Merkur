@@ -1,0 +1,6 @@
+[
+    {
+        "ip": "192.168.1.119",
+        "device info": "This is a rover. Signal 'quit' to turn it off and 'turn on' to turn it on."
+    }
+]
