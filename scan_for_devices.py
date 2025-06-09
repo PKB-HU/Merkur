@@ -1,8 +1,6 @@
 import socket
 import ipaddress
 import concurrent.futures
-import subprocess
-import os
 
 PORT_TO_SCAN = 6274
 TIMEOUT = 1  # seconds
